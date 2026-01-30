@@ -1,0 +1,236 @@
+/*preparing a calculator with html css and js.*/
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family:'sans-serif';
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .calculator {
+            background: #E6DEFF;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            width: 320px;
+        }
+
+        .display {
+            background: #2E1065;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: right;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .previous {
+            color: #C7BFFF;
+            font-size: 16px;
+            min-height: 20px;
+            margin-bottom: 5px;
+        }
+
+        .current {
+            color: #FFFFFF;
+            font-size: 32px;
+            font-weight: 500;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #FFFFFF;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .num, .decimal {
+            background:  #9F8FEF;
+        }
+
+        .operator {
+            background:  #7C3AED;
+        }
+
+        .clear {
+            background:  #5B21B6;
+            grid-column: span 2;
+        }
+
+        .equals {
+            background:  #5B21B6;
+            grid-column: span 2;
+        }
+
+        .zero {
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="previous" id="previous"></div>
+            <div class="current" id="current">0</div>
+        </div>
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">AC</button>
+            <button class="operator" onclick="deleteDigit()">DEL</button>
+            <button class="operator" onclick="appendOperator('÷')">÷</button>
+            <button class="num" onclick="appendNumber('7')">7</button>
+            <button class="num" onclick="appendNumber('8')">8</button>
+            <button class="num" onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('×')">×</button>
+            <button class="num" onclick="appendNumber('4')">4</button>
+            <button class="num" onclick="appendNumber('5')">5</button>
+            <button class="num" onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('-')">-</button>
+            <button class="num" onclick="appendNumber('1')">1</button>
+            <button class="num" onclick="appendNumber('2')">2</button>
+            <button class="num" onclick="appendNumber('3')">3</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+            <button class="num zero" onclick="appendNumber('0')">0</button>
+            <button class="decimal" onclick="appendNumber('.')">.</button>
+            <button class="equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let currentValue = '0';
+        let previousValue = '';
+        let operation = null;
+        let shouldResetDisplay = false;
+
+        const currentDisplay = document.getElementById('current');
+        const previousDisplay = document.getElementById('previous');
+
+        function updateDisplay() {
+            currentDisplay.textContent = currentValue;
+            if (operation && previousValue) {
+                previousDisplay.textContent = `${previousValue} ${operation}`;
+            } else {
+                previousDisplay.textContent = '';
+            }
+        }
+
+        function appendNumber(num) {
+            if (shouldResetDisplay) {
+                currentValue = '0';
+                shouldResetDisplay = false;
+            }
+            
+            if (num === '.' && currentValue.includes('.')) return;
+            
+            if (currentValue === '0' && num !== '.') {
+                currentValue = num;
+            } else {
+                currentValue += num;
+            }
+            
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (operation && !shouldResetDisplay) {
+                calculate();
+            }
+            
+            operation = op;
+            previousValue = currentValue;
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (!operation || !previousValue) return;
+            
+            const prev = parseFloat(previousValue);
+            const current = parseFloat(currentValue);
+            let result;
+
+            switch(operation) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '×':
+                    result = prev * current;
+                    break;
+                case '÷':
+                    result = current === 0 ? 'Error' : prev / current;
+                    break;
+                default:
+                    return;
+            }
+
+            currentValue = result.toString();
+            if (currentValue.length > 12) {
+                currentValue = parseFloat(currentValue).toExponential(6);
+            }
+            
+            operation = null;
+            previousValue = '';
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentValue = '0';
+            previousValue = '';
+            operation = null;
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function deleteDigit() {
+            if (currentValue.length === 1) {
+                currentValue = '0';
+            } else {
+                currentValue = currentValue.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
